@@ -1,12 +1,27 @@
-import { UserService } from '@api/service/Users/UserService';
+import { UserRole } from '@api/enums/UserRole.enum';
+import { UserCreateRequest } from '@api/requests/Users/UserCreateRequest';
+import { UserService } from '@api/services/Users/UserService';
+
 import { ControllerBase } from '@base/infrastructure/abstracts/ControllerBase';
-import { Body, Get, JsonController, Param, Post } from 'routing-controllers';
+import { AuthCheck } from '@infrastructure/middlewares/Auth/AuthCheck';
+import { HasRole } from '@infrastructure/middlewares/Auth/HasRole';
+import {
+  Body,
+  Get,
+  HttpCode,
+  JsonController,
+  Post,
+  UseBefore
+} from 'routing-controllers';
+import { OpenAPI } from 'routing-controllers-openapi';
 import { Service } from 'typedi';
 
-interface HelloWorldPost {
-  message: string;
-}
+@OpenAPI({
+  security: [{ bearerAuth: [] }]
+})
 @JsonController('/users')
+@UseBefore(AuthCheck)
+// @UseBefore(validateBodyMiddleware())
 @Service()
 export class UserController extends ControllerBase {
   constructor(private userService: UserService) {
@@ -18,17 +33,10 @@ export class UserController extends ControllerBase {
     return await this.userService.getAll();
   }
 
-  @Get('/post/:id')
-  show(@Param('id') postId: string) {
-    return `Showing post ${postId}`;
-  }
-
-  @Post('/add')
-  store(@Body() sth: HelloWorldPost) {
-    return {
-      type: typeof sth,
-      isHelloWorldPost: sth.constructor.name,
-      body: sth
-    };
+  @Post()
+  @UseBefore(HasRole([UserRole.ADMIN]))
+  @HttpCode(201)
+  public async create(@Body() user: UserCreateRequest) {
+    return await this.userService.create(user);
   }
 }

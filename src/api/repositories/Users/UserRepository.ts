@@ -1,4 +1,5 @@
 import { User } from '@api/models/Users/user.entity';
+import { UserCreateRequest } from '@api/requests/Users/UserCreateRequest';
 import { dataSource } from '@base/database/data-source';
 import { RepositoryBase } from '@base/infrastructure/abstracts/RepositoryBase';
 import { TypeormService } from '@infrastructure/services/orm/OrmService';
@@ -9,6 +10,15 @@ import { Service } from 'typedi';
 export class UserRepository extends RepositoryBase<User> {
   constructor() {
     super(User);
+  }
+
+  async createUser(data: UserCreateRequest) {
+    const user = new User();
+    user.username = data.username;
+    user.password = data.password;
+    user.role = data.role;
+    user.email = data.email;
+    return await this.save(user);
   }
 }
 

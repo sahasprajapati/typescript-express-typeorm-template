@@ -10,7 +10,7 @@ import express from 'express';
 import * as path from 'path';
 import bodyParser from 'body-parser';
 import { loadHelmet } from '@utils/loadHelmet';
-import { createServer } from 'http';
+import { createServer, Server } from 'http';
 
 import {
   useContainer as useRoutingControllersContainer,
@@ -31,7 +31,9 @@ import {
 import { LoggerService } from '@infrastructure/services/logger/LoggerService';
 import { appConfig } from './config/app';
 import { dataSource } from './database/data-source';
-import { UserRepository } from '@api/repositories/Users/UserRepository';
+import { loadEventDispatcher } from '@utils/load-event-dispatcher';
+import { EventDispatcherInterface } from './decorators/EventDispatcher';
+import { SendWelcomeMail } from '@api/queue-jobs/Users/SendWelcomMail';
 
 @Service()
 export class App {
@@ -69,6 +71,9 @@ export class App {
     this.registerDefaultHomePage();
     // Swagger
     this.setupSwagger();
+
+    // const dispatcher = new EventDispatcherInterface();
+    // dispatcher.dispatch('onUserCreate', { email: 's' });
   }
 
   private useContainers() {
@@ -83,6 +88,12 @@ export class App {
     this.app.use(
       '/public',
       express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 })
+    );
+    this.app.use(
+      '/chat',
+      express.static(path.join(__dirname, 'views/chat'), {
+        maxAge: 31557600000
+      })
     );
   }
 
@@ -103,11 +114,11 @@ export class App {
 
     const spec = routingControllersToSpec(
       storage,
-      { routePrefix: '/api' },
+      { routePrefix: appConfig.routePrefix },
       {
         components: {
           schemas,
-          securitySchemas: {
+          securitySchemes: {
             bearerAuth: {
               type: 'http',
               scheme: 'bearer',
@@ -135,10 +146,11 @@ export class App {
   private registerRoutingControllers() {
     this.app = useExpressServer(this.app, {
       validation: { stopAtFirstError: true },
-      cors: true,
-      routePrefix: '/api',
-      controllers: [__dirname + appConfig.controllerDir]
-      // middlewares: [__dirname + appConfig.middlewareDir]
+      cors: false,
+      defaultErrorHandler: false, //disable default error handler, only if you have your own errror handler
+      routePrefix: appConfig.routePrefix,
+      controllers: [__dirname + appConfig.controllerDir],
+      middlewares: [__dirname + appConfig.middlewareDir]
     });
   }
   private registerDefaultHomePage() {
@@ -170,7 +182,7 @@ export class App {
   }
 
   private registerEvents() {
-    return;
+    return loadEventDispatcher();
   }
 
   private registerCronJobs() {
@@ -194,3 +206,5 @@ Container.get<App>(App);
 // app.use('/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(spec));
 
 // app.listen(4000);
+
+// new SendWelcomeMail({ a: 'ol' }).setOptions({ delay: 0 }).dispatch();

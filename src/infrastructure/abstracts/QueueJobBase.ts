@@ -1,3 +1,6 @@
+import { dbConfig } from '@config/db';
+import { queueConfig } from '@config/queue';
+import { LoggerService } from '@infrastructure/services/logger/LoggerService';
 import {
   Queue,
   Worker,
@@ -6,6 +9,7 @@ import {
   QueueEvents,
   JobsOptions
 } from 'bullmq';
+
 export abstract class QueueJobBase {
   private queue: Queue;
   private queueScheduler: QueueScheduler;
@@ -20,12 +24,21 @@ export abstract class QueueJobBase {
     this.data = data;
   }
   public process() {
-    this.queue = new Queue(this.jobName);
-    this.queueScheduler = new QueueScheduler(this.jobName);
-    this.queueEvents = new QueueEvents(this.jobName);
+    this.queueScheduler = new QueueScheduler(this.jobName, {
+      connection: dbConfig.redis
+    });
+    this.queueEvents = new QueueEvents(this.jobName, {
+      connection: dbConfig.redis
+    });
+
+    this.queue = new Queue(this.jobName, { connection: dbConfig.redis });
 
     this.queue.add(this.jobName, this.data, this.jobOptions);
-    const worker = new Worker(this.jobName, this.handle);
+    const worker = new Worker(this.jobName, this.handle, {
+      connection: dbConfig.redis,
+      concurrency: queueConfig.concurrency,
+      limiter: queueConfig.limiter
+    });
 
     worker.on('completed', this.onCompleted);
     worker.on('failed', this.onFailed);

@@ -3,4 +3,3 @@
 
 npm run code:format && npm run lint
 npm run code:format && npm run lint
-npm run code:format && npm run lint

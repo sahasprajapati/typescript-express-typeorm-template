@@ -15,6 +15,7 @@ export const appConfig = {
 
   cronJobsEnabled: toBool(env('ENABLE_CRON_JOBS')),
 
+  eventsDir: env('EVENTS_DIR'),
   controllerDir: env('CONTROLLERS_DIR'),
   middlewareDir: env('MIDDLEWARES_DIR'),
   cronJobDir: env('CRON_JOBS_DIR')

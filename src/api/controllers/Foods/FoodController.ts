@@ -1,4 +1,4 @@
-import { FoodService } from '@api/service/Foods/FoodService';
+import { FoodService } from '@api/services/Foods/FoodService';
 import { ControllerBase } from '@base/infrastructure/abstracts/ControllerBase';
 import { Body, Get, JsonController, Param, Post } from 'routing-controllers';
 import { Service } from 'typedi';

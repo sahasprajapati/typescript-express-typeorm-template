@@ -11,4 +11,8 @@ export class JWTProvider {
       expires_in: authConfig.jwt.expiresIn
     };
   }
+
+  public verify(token: string, cb: (err: any, user: any) => void) {
+    jwt.verify(token, authConfig.jwt.secret, cb);
+  }
 }

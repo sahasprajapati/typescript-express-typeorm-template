@@ -10,7 +10,7 @@ import express from 'express';
 import * as path from 'path';
 import bodyParser from 'body-parser';
 import { loadHelmet } from '@utils/loadHelmet';
-import { createServer, Server } from 'http';
+import { createServer } from 'http';
 
 import {
   useContainer as useRoutingControllersContainer,
@@ -32,8 +32,6 @@ import { LoggerService } from '@infrastructure/services/logger/LoggerService';
 import { appConfig } from './config/app';
 import { dataSource } from './database/data-source';
 import { loadEventDispatcher } from '@utils/load-event-dispatcher';
-import { EventDispatcherInterface } from './decorators/EventDispatcher';
-import { SendWelcomeMail } from '@api/queue-jobs/Users/SendWelcomMail';
 
 @Service()
 export class App {
